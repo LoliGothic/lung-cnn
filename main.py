@@ -37,6 +37,7 @@ def train(model, dataloader, optimizer, criterion, device):
     false_negatives = 0
     for i, (inputs, labels) in enumerate(dataloader):
         inputs, labels = inputs.to(device), labels.to(device)
+        print(labels)
         optimizer.zero_grad()
         outputs = model(inputs)
         # print(outputs)
@@ -138,14 +139,15 @@ print(f"device: {device}")
 data = []  # 入力データのdepthは合わせる必要がある?
 targets = []
 
-true_data_path = f"./production_data/true"
-false_data_path = f"./production_data/false"
+true_data_path = "./reprocessing_data/true"
+false_data_path = "./reprocessing_data/false"
 
 # データをdataとtargetsに入れる
 for true_data in natsorted(os.listdir(true_data_path)):
     infiltration = np.load(f"{true_data_path}/{true_data}")
     data.append(infiltration)
     targets.append(1)
+
 for false_data in natsorted(os.listdir(false_data_path)):
     not_infiltration = np.load(f"{false_data_path}/{false_data}")
     data.append(not_infiltration)
@@ -164,9 +166,14 @@ targets = torch.tensor(targets).long()
 dataset = MyDataset(data, targets)
 
 # トレーニングセットとテストセットに分割する
-# train_dataset, test_dataset = torch.utils.data.random_split(dataset, [len(dataset)-10, 10])
-# train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-# test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+train_dataset, test_dataset = torch.utils.data.random_split(dataset, [len(dataset)-4, 4])
+train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+
+# モデル、オプティマイザ、損失関数を定義する
+model = VoxNet().to(device)
+optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+criterion = nn.CrossEntropyLoss()
 
 # グラフを書くためのx座標とy座標
 train_loss_graph_x = []

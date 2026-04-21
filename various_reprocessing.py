@@ -3,7 +3,7 @@ import numpy as np
 from natsort import natsorted
 from scipy.ndimage import convolve
 
-path = "D:/元データ/true"
+path = "D:/original_data/true"
 
 for data in natsorted(os.listdir(path)):
     reprocessing_data = np.load(f"{path}/{data}")
@@ -11,9 +11,9 @@ for data in natsorted(os.listdir(path)):
     # 正規化
     padding_voxel_data = np.zeros((32, 32, 32, 1), dtype=np.int32)
     voxel_data = np.load(f"{path}/{data}")
-    for z in range(30):
-        for x in range(30):
-            for y in range(30):
+    for z in range(32):
+        for x in range(32):
+            for y in range(32):
                 padding_voxel_data[x + 1][y + 1][z + 1] = voxel_data[x][y][z]
     reprocessing_data = (padding_voxel_data - padding_voxel_data.min()) / (padding_voxel_data.max() - padding_voxel_data.min())
 

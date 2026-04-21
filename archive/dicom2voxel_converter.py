@@ -37,7 +37,7 @@ for divide_patient_path in natsorted(os.listdir(all_patient_path)):
                             voxels[x][y][z] = 0
 
             # conv3dで使いやすくするために，ボクセルデータを正規化,転置する
-            voxels = voxels / 255
+            voxels = voxels / voxels.max()
 
             # ここからリサイズとかをしていくのでまだ転置はしなくていい？
             # voxels = voxels.T

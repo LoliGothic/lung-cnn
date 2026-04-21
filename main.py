@@ -6,6 +6,7 @@ import torch.optim as optim
 import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader
 from models.voxnet import VoxNet
+from models.voxnet2 import VoxNet2
 from sklearn.model_selection import KFold
 from torch.utils.data.dataset import Subset
 from natsort import natsorted # 普通のsortで文字列900,1000をsortすると，1000,900となってしまうため，natsortを使う
@@ -127,9 +128,9 @@ def test(model, dataloader, criterion, device):
     return running_loss / len(dataloader), accuracy, precision, recall, specificity, f1_score
 
 # パラメータを設定する
-learning_rate = 0.001
-batch_size = 2 #適当に変えた所
-num_epochs = 20
+learning_rate = 0.0001
+batch_size = 50 #適当に変えた所
+num_epochs = 300
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"device: {device}")
 
@@ -137,8 +138,8 @@ print(f"device: {device}")
 data = []  # 入力データのdepthは合わせる必要がある?
 targets = []
 
-true_data_path = f"./reprocessing_data/true"
-false_data_path = f"./reprocessing_data/false"
+true_data_path = f"./production_data/true"
+false_data_path = f"./production_data/false"
 
 # データをdataとtargetsに入れる
 for true_data in natsorted(os.listdir(true_data_path)):
@@ -178,7 +179,8 @@ kf = KFold(n_splits=5, shuffle=True)
 
 for _fold, (train_index, test_index) in enumerate(kf.split(range(len(dataset)))):
     # モデル、オプティマイザ、損失関数を定義する(リセットする)
-    model = VoxNet().to(device)
+    # model = VoxNet().to(device)
+    model = VoxNet2().to(device)
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
     criterion = nn.CrossEntropyLoss()
 
@@ -202,15 +204,15 @@ for _fold, (train_index, test_index) in enumerate(kf.split(range(len(dataset))))
         # print(f"Epoch {epoch+1}: Train Acc = {train_accuracy}")
         # print(f"Epoch {epoch+1}: Test Acc = {test_accuracy}")
         # print(f"Epoch {epoch+1}: Train Loss = {train_loss:.4f}, Train Accuracy = {train_accuracy:.4f}, Train Precision = {train_precision:.4f}, Train Recall = {train_recall:.4f}, Train Specificity = {train_specificity:.4f}, Train F1 Score = {train_f1_score:.4f}")
-        if epoch == 19:
-            print(f"Epoch {epoch+1}: Test Loss = {test_loss:.4f}, Test Accuracy = {test_accuracy:.4f}, Test Precision = {test_precision:.4f}, Test Recall = {test_recall:.4f}, Test Specificity = {test_specificity:.4f}, Test F1 Score = {test_f1_score:.4f}")
+        # if epoch == 49 or epoch == 99 or epoch == 149 or epoch == 199 or epoch == 249 or epoch == 299:
+        print(f"Epoch {epoch+1}: Test Loss = {test_loss:.4f}, Test Accuracy = {test_accuracy:.4f}, Test Precision = {test_precision:.4f}, Test Recall = {test_recall:.4f}, Test Specificity = {test_specificity:.4f}, Test F1 Score = {test_f1_score:.4f}")
 
 # グラフを書いてカレントディレクトリに保存
 plt.plot(train_loss_graph_x, train_loss_graph_y)
-plt.savefig("train_loss.png")
+plt.savefig("./result/train_loss.png")
 
 plt.plot(test_accuracy_graph_x, test_accuracy_graph_y)
-plt.savefig("test_accuracy.png")
+plt.savefig("./result/test_accuracy.png")
 
 # モデルを保存する
-# torch.save(model.state_dict(), "voxnet_model.pt")
+torch.save(model.state_dict(), "voxnet_model.pt")
